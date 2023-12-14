@@ -1,6 +1,6 @@
 ![](.github/images/repo_header.png)
 
-[![Uptime Kuma](https://img.shields.io/badge/Uptime_Kuma-1.21.2-blue.svg)](https://github.com/louislam/uptime-kuma/releases/tag/1.21.2)
+[![Uptime Kuma](https://img.shields.io/badge/Uptime_Kuma-1.23.10-blue.svg)](https://github.com/louislam/uptime-kuma/releases/tag/1.23.10)
 [![Dokku](https://img.shields.io/badge/Dokku-Repo-blue.svg)](https://github.com/dokku/dokku)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/louislam/uptime-kuma/graphs/commit-activity)
 
@@ -89,7 +89,7 @@ Encrypt](https://letsencrypt.org).
 dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
 
 # Set certificate contact email
-dokku config:set --no-restart uptime-kuma DOKKU_LETSENCRYPT_EMAIL=you@example.com
+dokku letsencrypt:set uptime-kuma email you@example.com
 
 # Generate certificate
 dokku letsencrypt:enable uptime-kuma
