@@ -1,5 +1,3 @@
 ARG UPTIME_KUMA_VERSION="1.23.16"
 
 FROM louislam/uptime-kuma:$UPTIME_KUMA_VERSION
-
-EXPOSE 5000/tcp
