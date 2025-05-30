@@ -1,127 +1,125 @@
 ![](.github/images/repo_header.png)
 
-[![Uptime Kuma](https://img.shields.io/badge/Uptime_Kuma-1.23.10-blue.svg)](https://github.com/louislam/uptime-kuma/releases/tag/1.23.10)
+[![Uptime Kuma](https://img.shields.io/badge/Uptime_Kuma-1.23.16-blue.svg)](https://github.com/louislam/uptime-kuma/releases/tag/1.23.16)
 [![Dokku](https://img.shields.io/badge/Dokku-Repo-blue.svg)](https://github.com/dokku/dokku)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/louislam/uptime-kuma/graphs/commit-activity)
 
 # Run Uptime Kuma on Dokku
 
-## Perquisites
+## Overview
 
-### What is Uptime Kuma?
+This guide explains how to deploy [Uptime Kuma](https://github.com/louislam/uptime-kuma), a self-hosted monitoring tool similar to "Uptime Robot," on a [Dokku](http://dokku.viewdocs.io/dokku/) host. Dokku is a lightweight PaaS that simplifies deploying and managing applications using Docker.
 
-[Uptime Kuma](https://github.com/louislam/uptime-kuma) is a self-hosted monitoring tool like "Uptime Robot".
+## Prerequisites
 
-### What is Dokku?
+Before proceeding, ensure you have the following:
 
-[Dokku](http://dokku.viewdocs.io/dokku) is the smallest PaaS implementation you've ever seen - _Docker
-powered mini-Heroku_.
+- A working [Dokku host](http://dokku.viewdocs.io/dokku/getting-started/installation/).
+- (Optional) The [Let's Encrypt plugin](https://github.com/dokku/dokku-letsencrypt) for SSL certificates.
 
-### Requirements
+## Setup Instructions
 
-* A working [Dokku host](http://dokku.viewdocs.io/dokku/getting-started/installation)
+### 1. Create the App
 
-# Setup
-
-**Note:** We are going to use the domain `uptime.example.com` for demonstration purposes. Make sure to
-replace it with your own domain name.
-
-## App and plugins
-
-### Create the app
-
-Log onto your Dokku Host to create the Uptime Kuma app:
+Log into your Dokku host and create the `uptime-kuma` app:
 
 ```bash
 dokku apps:create uptime-kuma
 ```
 
-## Domain
+### 2. Configure Persistent Storage
 
-To get the routing working, we need to apply a few settings. First we set the domain.
-
-```bash
-dokku domains:set uptime-kuma uptime.example.com
-```
-
-## Persistent storage
-
-To persists user uploads (e.g. avatars) between restarts, create a folder on the host machine and tell Dokku to mount it to the app container.
+To persist user uploads (e.g., avatars) between restarts, create a folder on the host machine and mount it to the app container:
 
 ```bash
 sudo mkdir -p /var/lib/dokku/data/storage/uptime-kuma
 dokku storage:mount uptime-kuma /var/lib/dokku/data/storage/uptime-kuma:/app/data
 ```
 
-## Push Uptime Kuma to Dokku
+### 3. Configure the Domain and Ports
 
-### Grabbing the repository
-
-First clone this repository onto your machine.
+Set the domain for your app to enable routing:
 
 ```bash
-# Via SSH
-git clone git@github.com:d1ceward/uptime_kuma_on_dokku.git
-
-# Via HTTPS
-git clone https://github.com/d1ceward/uptime_kuma_on_dokku.git
+dokku domains:set uptime-kuma uptime.example.com
 ```
 
-### Set up your Dokku server as a Git remote
+Map the internal port `3001` to the external port `80`:
 
 ```bash
-git remote add dokku dokku@example.com:uptime-kuma
+dokku ports:set grafana http:80:3001
 ```
 
-### Push Uptime Kuma to Dokku
+### 4. Deploy the App
+
+You can deploy the app to your Dokku server using one of the following methods:
+
+#### Option 1: Deploy Using `dokku git:sync`
+
+If your repository is hosted on a remote Git server with an HTTPS URL, you can deploy the app directly to your Dokku server using `dokku git:sync`. This method also triggers a build process automatically. Run the following command:
 
 ```bash
-git push dokku master
+dokku git:sync --build uptime-kuma https://github.com/d1ceward-on-dokku/uptime_kuma_on_dokku.git
 ```
 
-## SSL certificate
+This will fetch the code from the specified repository, build the app, and deploy it to your Dokku server.
 
-Last but not least, we can go an grab the SSL certificate from [Let's
-Encrypt](https://letsencrypt.org).
+#### Option 2: Clone the Repository and Push Manually
 
-```bash
-# Install letsencrypt plugin
-dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
+If you prefer to work with the repository locally, you can clone it to your machine and push it to your Dokku server manually:
 
-# Set certificate contact email
-dokku letsencrypt:set uptime-kuma email you@example.com
+1. Clone the repository:
 
-# Generate certificate
-dokku letsencrypt:enable uptime-kuma
-```
+    ```bash
+    # Via SSH
+    git clone git@github.com:d1ceward-on-dokku/uptime_kuma_on_dokku.git
 
-## Wrapping up
+    # Via HTTPS
+    git clone https://github.com/d1ceward-on-dokku/uptime_kuma_on_dokku.git
+    ```
 
-Your Uptime Kuma instance should now be available on [https://uptime.example.com](https://uptime.example.com).
+2. Add your Dokku server as a Git remote:
 
-### Possible issue with proxy ports mapping
+    ```bash
+    git remote add dokku dokku@example.com:uptime-kuma
+    ```
 
-If the Plausible instance is not available at the address https://plausible.example.com check the return of this command :
-```bash
-dokku proxy:ports plausible
-```
+3. Push the app to your Dokku server:
 
-```bash
-### Valid return
------> Port mappings for plausible
-    -----> scheme  host port  container port
-    http           80         5000
+    ```bash
+    git push dokku master
+    ```
 
-### Invalid return
------> Port mappings for plausible
-    -----> scheme  host port  container port
-    http           5000       5000
-```
+Choose the method that best suits your workflow.
 
-If the return is not the expected one, execute this command :
+### 5. Enable SSL (Optional)
 
-```bash
-dokku proxy:ports-set plausible http:80:5000
-```
+Secure your app with an SSL certificate from Let's Encrypt:
 
-If the return of the command was valid and Plausible is still not available, feel free to fill an issue in the issue tracker.
+1. Add the HTTPS port:
+
+    ```bash
+    dokku ports:add grafana https:443:3001
+    ```
+
+2. Install the Let's Encrypt plugin:
+
+    ```bash
+    dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
+    ```
+
+3. Set the contact email for Let's Encrypt:
+
+    ```bash
+    dokku letsencrypt:set uptime-kuma email you@example.com
+    ```
+
+4. Enable Let's Encrypt for the app:
+
+    ```bash
+    dokku letsencrypt:enable uptime-kuma
+    ```
+
+## Wrapping Up
+
+Congratulations! Your Uptime Kuma instance is now up and running. You can access it at [https://uptime.example.com](https://uptime.example.com).
